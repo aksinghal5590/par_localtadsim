@@ -14,7 +14,7 @@ func ProcessIntervals(tadlist [][]int, start int, end int) [][]int {
 		if start >= tad[0]  && end >= tad[1] { // interval starts in current TAD and ends sometime afterwards
 			newint = [][]int{[]int{0, tad[1]-start}}
 		} else if start >= tad[0] && end < tad[1] { // interval both starts and ends in this TAD
-			newint = [][]int{[]int{0,end-start}} 
+			newint = [][]int{[]int{0,end-start}}
 		} else if start < tad[0] && end > tad[1] { // TAD fully contained in interval
 			newtad := []int{tad[0] - start, tad[1] - start}
 			newint = append(newint, newtad)
@@ -23,7 +23,7 @@ func ProcessIntervals(tadlist [][]int, start int, end int) [][]int {
 			newint = append(newint, lasttad)
 		} else if end > tad[0] { // past end of interval
 			break }
-		
+
 	}
 	return newint
 }

@@ -31,7 +31,7 @@ func main() {
 	outfile := flag.String("o","","output filename")
 
 	flag.Parse()
-	
+
 	tadfilelist := strings.Split(*tadin, ",")
 
 	var gammaopt bool
@@ -51,24 +51,25 @@ func main() {
 
 	// read TAD files and process TAD lists to fill in non-TAD regions
 	tadlists := processTADLists(tadfilelist, res, gammaopt, medtadlen)
-	fmt.Println("done processing TAD lists, choosing optimal gamma")
+	//fmt.Println("done processing TAD lists, choosing optimal gamma")
 
 	// calculate VI values at boundaries (using DP)
 	bdyvis := calcVIatBdys(tadlists)
-//	bdyvisnaive := calcVIatBdysNaive(tadlists)
-	
+	// bdyvis := calcVIatBdysNaive(tadlists)
+	// bdyvisnaive := calcVIatBdysNaive(tadlists)
+
 	// calculate all p-values, select significant points
 	nshuffles := 1000
 	sigpts := calcAllPvals(tadlists, bdyvis, nshuffles)
-	fmt.Println("done calculating all p-values")
+	//fmt.Println("done calculating all p-values")
 
 	// identify dominating points from significant ones
 	dompts := findDomPts(sigpts)
-	fmt.Println("done finding dominating points")
+	//fmt.Println("done finding dominating points")
 
 	// save results to a file
 	writeOutputToFile(dompts,outfile)
-	
+
 }
 
 
@@ -92,7 +93,7 @@ func processTADLists(tadfilelist []string, res *int, gammaopt bool, medtadlen fl
 	for i:=0; i < 2; i++ {
 		tadlists[i] = hicutil.FillinTADList(tadlists[i], chrlength)
 	}
-	
+
 	return tadlists
 
 }
@@ -109,6 +110,11 @@ func calcVIatBdysNaive(tadlists [][][]int) ([]bdyvi) {
 	for _,tadlist := range tadlists {
 		for i,tadstart := range tadlist {
 			for _,tadend := range tadlist[i:] {
+
+				if hicutil.ContainsHangingTAD(tadlists[0], tadstart[0], tadend[1]) || hicutil.ContainsHangingTAD(tadlists[1], tadstart[0], tadend[1]) {
+					continue
+				}
+
 				newbdyvi.start = tadstart[0]
 				newbdyvi.end = tadend[1]
 				n := tadend[1] - tadstart[0] + 1
@@ -153,6 +159,7 @@ func calcVIatBdys(tadlists [][][]int) ([]bdyvi) {
 	// first initialize VI values of all single-TAD intervals
 	for _,tadlist := range tadlists {
 		for _,tads := range tadlist {
+
 			var newbdyvi bdyvi
 			newbdyvi.start = tads[0]
 			newbdyvi.end = tads[1]
@@ -188,7 +195,7 @@ func calcVIatBdys(tadlists [][][]int) ([]bdyvi) {
 			newbdyvi.vi = currhvals.vi/math.Log(float64(tads[1]-tads[0]+1)) // divide by log(n) to normalize
 			if tads[0] == tads[1] { continue }
 			bdyvilist = append(bdyvilist, newbdyvi)
-		}		
+		}
 	}
 	for i,tadlist := range tadlists {
 		var noti int
@@ -228,6 +235,9 @@ func calcVIatBdys(tadlists [][][]int) ([]bdyvi) {
 				}
 				dpmap[starttad[0]][endtad[1]] = newhvals
 				newbdyvis.vi = newhvals.vi/math.Log(float64(endtad[1]-starttad[0]+1))
+				if hicutil.ContainsHangingTAD(tadlists[0], starttad[0], endtad[1]) || hicutil.ContainsHangingTAD(tadlists[1], starttad[0], endtad[1]) {
+					continue
+				}
 				bdyvilist = append(bdyvilist, newbdyvis)
 			}
 		}
@@ -268,6 +278,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	//flag.Parse()
 	//runtime.GOMAXPROCS(*numcpu)
 
+	sort.Slice(bdyvis, func(i,j int) bool { if bdyvis[i].start == bdyvis[j].start {return bdyvis[i].end < bdyvis[j].end} else {return bdyvis[i].start < bdyvis[j].start}})
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
@@ -279,6 +290,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	//	fmt.Println(i)
 		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
 		allpvals[i] = bdyvis_pval[i].pval
+		fmt.Printf("%d\t%d\t%6f\t%6f\n", bdyvis_pval[i].start, bdyvis_pval[i].end, bdyvis_pval[i].vi, bdyvis_pval[i].pval)
 			/*if p < 0.05 {
 				querypt.pval = p
 				sigpts = append(sigpts, querypt)
@@ -298,7 +310,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 }
 
 func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
-	
+
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
@@ -316,7 +328,7 @@ func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
 }
 
 func findDomPts(sigpts []bdyvi) []bdyvi {
-	
+
 	var dompts []bdyvi
 	for i,querypt := range sigpts {
 		isdom := true
@@ -332,7 +344,7 @@ func findDomPts(sigpts []bdyvi) []bdyvi {
 			}
 			if comppt.start <= querypt.start { continue }
 			if comppt.end >= querypt.end { continue }
-			if comppt.vi < querypt.vi { 
+			if comppt.vi < querypt.vi {
 				isdom = false
 				break
 			}
@@ -364,6 +376,7 @@ func findDomPts(sigpts []bdyvi) []bdyvi {
 	for i,j := range toremove {
 		dompts = append(dompts[:j-i], dompts[j-i+1:]...)
 	}
+	sort.Slice(dompts, func(i,j int) bool {return dompts[i].start < dompts[j].start})
 	return dompts
 }
 
@@ -387,13 +400,13 @@ func writeOutputToFile(domsigpts []bdyvi, outfile *string) {
                 strvals := make([]string, 4)
 		strvals[0] = strconv.Itoa(vals.start)
 		strvals[1] = strconv.Itoa(vals.end)
-		strvals[2] = strconv.FormatFloat(vals.vi,'g',-1,64)
-		strvals[3] = strconv.FormatFloat(vals.pval,'g',-1,64)
+		strvals[2] = strconv.FormatFloat(vals.vi,'g',6,64)
+		strvals[3] = strconv.FormatFloat(vals.pval,'g',6,64)
                 newline := strings.Join(strvals, "\t")
                 fmt.Fprintf(w,newline+"\n")
         }
         w.Flush()
         f.Close()
-	fmt.Println("Wrote output values to", *outfile)
+	//fmt.Println("Wrote output values to", *outfile)
 }
 
