@@ -269,40 +269,37 @@ func transpose(a [][]int) [][]int {
 	return b
 }
 
+/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+
+	var sigpts []bdyvi
+	bdyvis_pval := make([]bdyvi, len(bdyvis))
+	allpvals := make([]float64,len(bdyvis_pval))
+	for i,querypt := range bdyvis {
+		wg := make (chan bool);
+		go func (i int, querypt bdyvi) {
+			bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
+			allpvals[i] = bdyvis_pval[i].pval
+			wg <- true
+		} (i, querypt)
+		<-wg
+	}
+
+	bhidx := hicutil.MultHypTestBH(allpvals)
+	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
+	sigpts = bdyvis_pval[:bhidx+1]
+	return sigpts
+}*/
+
 func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 
-	//var wg sync.WaitGroup
-	//wg.Add(len(bdyvis))
-	//runtime.GOMAXPROCS(runtime.NumCPU())
-	//numcpu := flag.Int("cpu", runtime.NumCPU(), "")
-	//flag.Parse()
-	//runtime.GOMAXPROCS(*numcpu)
-
-	sort.Slice(bdyvis, func(i,j int) bool { if bdyvis[i].start == bdyvis[j].start {return bdyvis[i].end < bdyvis[j].end} else {return bdyvis[i].start < bdyvis[j].start}})
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
 	//for _,querypt := range bdyvis {
 	for i,querypt := range bdyvis {
-	//	go func (i int) {
-	//		defer wg.Done()
-
-	//	fmt.Println(i)
 		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
 		allpvals[i] = bdyvis_pval[i].pval
-		fmt.Printf("%d\t%d\t%6f\t%6f\n", bdyvis_pval[i].start, bdyvis_pval[i].end, bdyvis_pval[i].vi, bdyvis_pval[i].pval)
-			/*if p < 0.05 {
-				querypt.pval = p
-				sigpts = append(sigpts, querypt)
-			} */
-	//	} (i)
 	}
-	//wg.Wait()
-	/*for _,query := range bdyvis_pval {
-		if query.pval < 0.05 {
-			sigpts = append(sigpts, query)
-		}
-	}*/
 	bhidx := hicutil.MultHypTestBH(allpvals)
 	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
 	sigpts = bdyvis_pval[:bhidx+1]
