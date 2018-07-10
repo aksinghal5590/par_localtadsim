@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sort"
 	"math"
-//	"runtime"
-//	"sync"
+	"runtime"
+	"sync"
 	)
 
 type bdyvi struct {
@@ -269,28 +269,48 @@ func transpose(a [][]int) [][]int {
 	return b
 }
 
-/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+var wg sync.WaitGroup
+
+func worker(tadlists [][][]int, nshuffles int, jobs <- chan bdyvi, results chan <- bdyvi) {
+	defer wg.Done()
+	for querypt := range jobs {
+		results <- appendPval(tadlists, querypt, nshuffles)
+	}
+}
+
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
-	for i,querypt := range bdyvis {
-		wg := make (chan bool);
-		go func (i int, querypt bdyvi) {
-			bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
-			allpvals[i] = bdyvis_pval[i].pval
-			wg <- true
-		} (i, querypt)
-		<-wg
-	}
+	jobs := make(chan bdyvi, len(bdyvis))
+	results := make(chan bdyvi, len(bdyvis))
+
+	for w := 0; w < runtime.NumCPU(); w++ {
+		wg.Add(1)
+		go worker(tadlists, nshuffles, jobs, results)
+    }
+    for i := 0; i < len(bdyvis); i++ {
+    	jobs <- bdyvis[i]
+    }
+    close(jobs)
+    wg.Wait()
+    close(results)
+
+    i := 0
+    for res := range results {
+    	bdyvis_pval[i] = res
+    	allpvals[i] = bdyvis_pval[i].pval
+    	i++
+    }
 
 	bhidx := hicutil.MultHypTestBH(allpvals)
 	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
 	sigpts = bdyvis_pval[:bhidx+1]
 	return sigpts
-}*/
+}
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
@@ -304,7 +324,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
 	sigpts = bdyvis_pval[:bhidx+1]
 	return sigpts
-}
+}*/
 
 func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
 
