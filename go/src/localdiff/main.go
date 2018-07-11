@@ -12,6 +12,7 @@ import (
 	"math"
 	"runtime"
 	"sync"
+	"time"
 	)
 
 type bdyvi struct {
@@ -50,22 +51,33 @@ func main() {
 	}
 
 	// read TAD files and process TAD lists to fill in non-TAD regions
+	then := time.Now()
 	tadlists := processTADLists(tadfilelist, res, gammaopt, medtadlen)
-	//fmt.Println("done processing TAD lists, choosing optimal gamma")
+	duration := time.Since(then)
+	fmt.Printf("processTADLists duration: %s\n", duration)
+	// fmt.Println("done processing TAD lists, choosing optimal gamma")
 
 	// calculate VI values at boundaries (using DP)
+	then = time.Now()
 	bdyvis := calcVIatBdys(tadlists)
 	// bdyvis := calcVIatBdysNaive(tadlists)
-	// bdyvisnaive := calcVIatBdysNaive(tadlists)
+	duration = time.Since(then)
+	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
 	// calculate all p-values, select significant points
 	nshuffles := 1000
+	then = time.Now()
 	sigpts := calcAllPvals(tadlists, bdyvis, nshuffles)
-	//fmt.Println("done calculating all p-values")
+	duration = time.Since(then)
+	fmt.Printf("calcAllPvals duration: %s\n", duration)
+	// fmt.Println("done calculating all p-values")
 
 	// identify dominating points from significant ones
+	then = time.Now()
 	dompts := findDomPts(sigpts)
-	//fmt.Println("done finding dominating points")
+	duration = time.Since(then)
+	fmt.Printf("findDomPts duration: %s\n", duration)
+	// fmt.Println("done finding dominating points")
 
 	// save results to a file
 	writeOutputToFile(dompts,outfile)
@@ -118,16 +130,9 @@ func calcVIatBdysNaive(tadlists [][][]int) ([]bdyvi) {
 				newbdyvi.start = tadstart[0]
 				newbdyvi.end = tadend[1]
 				n := tadend[1] - tadstart[0] + 1
-				//n1 := extendn(tadlists[0],tadend[1])
-				//n2 := extendn(tadlists[1],tadend[1])
 				intvl1 := hicutil.ProcessIntervals(tadlists[0],tadstart[0],tadend[1])
 				intvl2 := hicutil.ProcessIntervals(tadlists[1],tadstart[0],tadend[1])
 				overlaps := hicutil.CalcOverlaps(intvl1,intvl2)
-				/*if n1 != n2 {
-					maxn := n1
-					if n2 > n1 { maxn = n2 }
-					overlaps = scaleLastOverlap(overlaps, maxn, tadend)
-				}*/
 				clus1sizes := make([]int, len(intvl1))
 				for c,clus := range intvl1 {
 					clus1sizes[c] = clus[1]-clus[0]+1 }
@@ -315,7 +320,6 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
-	//for _,querypt := range bdyvis {
 	for i,querypt := range bdyvis {
 		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
 		allpvals[i] = bdyvis_pval[i].pval
@@ -399,31 +403,31 @@ func findDomPts(sigpts []bdyvi) []bdyvi {
 
 func writeOutputToFile(domsigpts []bdyvi, outfile *string) {
 
-        //write values to file
-        f,err := os.Create(*outfile)
-        if err != nil {
-                panic(err)
-        }
-        //defer f.Close()
+    //write values to file
+    f,err := os.Create(*outfile)
+    if err != nil {
+            panic(err)
+    }
+    //defer f.Close()
 
-        w := bufio.NewWriter(f)
-        labelline := []string{"start", "end", "VI", "p-value"}
-        //fmt.Println(strings.Join(labelline, "\t"))
+    w := bufio.NewWriter(f)
+    labelline := []string{"start", "end", "VI", "p-value"}
+    //fmt.Println(strings.Join(labelline, "\t"))
 	line1 := strings.Join(labelline, "\t")
-        //fmt.Println(line1)
-        fmt.Fprintf(w,line1+"\n")
+    //fmt.Println(line1)
+    fmt.Fprintf(w,line1+"\n")
 
-        for _,vals := range domsigpts {
-                strvals := make([]string, 4)
-		strvals[0] = strconv.Itoa(vals.start)
-		strvals[1] = strconv.Itoa(vals.end)
-		strvals[2] = strconv.FormatFloat(vals.vi,'g',6,64)
-		strvals[3] = strconv.FormatFloat(vals.pval,'g',6,64)
-                newline := strings.Join(strvals, "\t")
-                fmt.Fprintf(w,newline+"\n")
-        }
-        w.Flush()
-        f.Close()
+    for _,vals := range domsigpts {
+            strvals := make([]string, 4)
+	strvals[0] = strconv.Itoa(vals.start)
+	strvals[1] = strconv.Itoa(vals.end)
+	strvals[2] = strconv.FormatFloat(vals.vi,'g',6,64)
+	strvals[3] = strconv.FormatFloat(vals.pval,'g',6,64)
+            newline := strings.Join(strvals, "\t")
+            fmt.Fprintf(w,newline+"\n")
+    }
+    w.Flush()
+    f.Close()
 	//fmt.Println("Wrote output values to", *outfile)
 }
 
