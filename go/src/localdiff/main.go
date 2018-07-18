@@ -22,6 +22,13 @@ type bdyvi struct {
 	pval float64
 }
 
+func printValues(bdyvis []bdyvi) {
+	sort.Slice(bdyvis, func(i,j int) bool { if bdyvis[i].start == bdyvis[j].start {return bdyvis[i].end < bdyvis[j].end} else {return bdyvis[i].start < bdyvis[j].start}})
+	for i := 0; i < len(bdyvis); i++ {
+		fmt.Printf("%d\t%d\t%6f\t%6f\n", bdyvis[i].start, bdyvis[i].end, bdyvis[i].vi, bdyvis[i].pval)
+	}
+}
+
 
 func main() {
 
@@ -59,8 +66,8 @@ func main() {
 
 	// calculate VI values at boundaries (using DP)
 	then = time.Now()
-	bdyvis := calcVIatBdys(tadlists)
-	// bdyvis := calcVIatBdysNaive(tadlists)
+	// bdyvis := calcVIatBdys(tadlists)
+	bdyvis := calcVIatBdysNaive(tadlists)
 	duration = time.Since(then)
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
@@ -81,7 +88,6 @@ func main() {
 
 	// save results to a file
 	writeOutputToFile(dompts,outfile)
-
 }
 
 
@@ -291,10 +297,16 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	jobs := make(chan bdyvi, len(bdyvis))
 	results := make(chan bdyvi, len(bdyvis))
 
-	for w := 0; w < runtime.NumCPU(); w++ {
+	numCPU := runtime.NumCPU()/4
+	if numCPU < 4 {
+		numCPU = 4
+	}
+
+	for w := 0; w < numCPU; w++ {
 		wg.Add(1)
 		go worker(tadlists, nshuffles, jobs, results)
     }
+
     for i := 0; i < len(bdyvis); i++ {
     	jobs <- bdyvis[i]
     }
@@ -309,6 +321,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
     	i++
     }
 
+    printValues(bdyvis_pval)
 	bhidx := hicutil.MultHypTestBH(allpvals)
 	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
 	sigpts = bdyvis_pval[:bhidx+1]
