@@ -22,16 +22,21 @@ type bdyvi struct {
 	pval float64
 }
 
-func printValues(bdyvis []bdyvi) {
-	sort.Slice(bdyvis, func(i,j int) bool { if bdyvis[i].start == bdyvis[j].start {return bdyvis[i].end < bdyvis[j].end} else {return bdyvis[i].start < bdyvis[j].start}})
-	for i := 0; i < len(bdyvis); i++ {
-		fmt.Printf("%d\t%d\t%6f\t%6f\n", bdyvis[i].start, bdyvis[i].end, bdyvis[i].vi, bdyvis[i].pval)
+func sortAndPrint(bdyvis []bdyvi, isPrint bool) {
+	sort.Slice(bdyvis, func(i,j int) bool {
+		if bdyvis[i].start == bdyvis[j].start {return bdyvis[i].end < bdyvis[j].end} else {return bdyvis[i].start < bdyvis[j].start}
+	})
+	if isPrint {
+		for i := 0; i < len(bdyvis); i++ {
+			fmt.Printf("%d\t%d\t%6f\t%6f\n", bdyvis[i].start, bdyvis[i].end, bdyvis[i].vi, bdyvis[i].pval)
+		}
 	}
 }
 
 
 func main() {
 
+	runtime.GOMAXPROCS(1)
 	// inputs should be 2 TAD files, a resolution parameter, and the output file name
 	tadin := flag.String("tad", "", "comma-separated list of two TAD filenames or file patterns if optimizing gamma")
 	gammain := flag.String("gamma", "", "if optimizing gamma, use 'opt,n' where n is the median TAD size to optimize for")
@@ -68,17 +73,21 @@ func main() {
 	then = time.Now()
 	// bdyvis := calcVIatBdys(tadlists)
 	bdyvis := calcVIatBdysNaive(tadlists)
+	sortAndPrint(bdyvis, false)
 	duration = time.Since(then)
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
+	numCPU := runtime.NumCPU()
+	// numCPU = 1
+	runtime.GOMAXPROCS(numCPU)
 	// calculate all p-values, select significant points
-	nshuffles := 1000
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, nshuffles)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
 
+	runtime.GOMAXPROCS(1)
 	// identify dominating points from significant ones
 	then = time.Now()
 	dompts := findDomPts(sigpts)
@@ -281,60 +290,62 @@ func transpose(a [][]int) [][]int {
 }
 
 var wg sync.WaitGroup
-
-func worker(tadlists [][][]int, nshuffles int, jobs <- chan bdyvi, results chan <- bdyvi) {
+func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi) {
 	defer wg.Done()
-	for querypt := range jobs {
-		results <- appendPval(tadlists, querypt, nshuffles)
+	for i, querypt := range job {
+		(*result)[i] = appendPval(tadlists, querypt)
 	}
 }
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int) []bdyvi {
 
 	var sigpts []bdyvi
+	if len(bdyvis) < numCPU {
+		numCPU = len(bdyvis)
+	}
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
-	allpvals := make([]float64,len(bdyvis_pval))
-	jobs := make(chan bdyvi, len(bdyvis))
-	results := make(chan bdyvi, len(bdyvis))
+	allpvals := make([]float64, len(bdyvis))
+	jobs := make([][]bdyvi, numCPU)
+	results := make([][]bdyvi, numCPU)
 
-	numCPU := runtime.NumCPU()/4
-	if numCPU < 4 {
-		numCPU = 4
+	k := 0
+	fmt.Println("bdyvis len = ", len(bdyvis))
+	for i := 0; i < len(bdyvis); i++ {
+		jobs[k] = append(jobs[k], bdyvis[i])
+		k = (k + 1) % numCPU
 	}
 
-	for w := 0; w < numCPU; w++ {
+	for w, job := range jobs {
 		wg.Add(1)
-		go worker(tadlists, nshuffles, jobs, results)
-    }
+		results[w] = make([]bdyvi, len(job))
+		go worker(tadlists, job, &results[w])
+	}
+	wg.Wait()
 
-    for i := 0; i < len(bdyvis); i++ {
-    	jobs <- bdyvis[i]
-    }
-    close(jobs)
-    wg.Wait()
-    close(results)
+	i := 0
+	for w := 0; w < numCPU; w++ {
+		for _, res := range results[w] {
+			bdyvis_pval[i] = res
+			allpvals[i] = bdyvis_pval[i].pval
+			i++
+		}
+	}
 
-    i := 0
-    for res := range results {
-    	bdyvis_pval[i] = res
-    	allpvals[i] = bdyvis_pval[i].pval
-    	i++
-    }
-
-    printValues(bdyvis_pval)
 	bhidx := hicutil.MultHypTestBH(allpvals)
-	sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
-	sigpts = bdyvis_pval[:bhidx+1]
+	if bhidx > -1 {
+		sort.Slice(bdyvis_pval, func(i,j int) bool {return bdyvis_pval[i].pval < bdyvis_pval[j].pval})
+		sigpts = bdyvis_pval[:bhidx+1]
+	}
 	return sigpts
 }
 
-/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi) []bdyvi {
 
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
 	for i,querypt := range bdyvis {
-		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
+		bdyvis_pval[i] = appendPval(tadlists, querypt)
 		allpvals[i] = bdyvis_pval[i].pval
 	}
 	bhidx := hicutil.MultHypTestBH(allpvals)
@@ -343,12 +354,12 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	return sigpts
 }*/
 
-func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
+func appendPval( tadlists [][][]int, querypt bdyvi) (bdyvi) {
 
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, nshuffles)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)
