@@ -309,7 +309,6 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int) []bdyvi {
 	results := make([][]bdyvi, numCPU)
 
 	k := 0
-	fmt.Println("bdyvis len = ", len(bdyvis))
 	for i := 0; i < len(bdyvis); i++ {
 		jobs[k] = append(jobs[k], bdyvis[i])
 		k = (k + 1) % numCPU
