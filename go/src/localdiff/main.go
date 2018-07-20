@@ -80,10 +80,10 @@ func main() {
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
 	numCPU = *pcount
-	runtime.GOMAXPROCS(numCPU)
+	runtime.GOMAXPROCS(numCPU * 2)
 	// calculate all p-values, select significant points
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, numCPU)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU, 2)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
@@ -291,15 +291,15 @@ func transpose(a [][]int) [][]int {
 }
 
 var wg sync.WaitGroup
-func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi) {
+func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, threadCount int) {
 	defer wg.Done()
 	for i, querypt := range job {
-		(*result)[i] = appendPval(tadlists, querypt)
 		runtime.Gosched()
+		(*result)[i] = appendPval(tadlists, querypt, threadCount)
 	}
 }
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int) []bdyvi {
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, threadCount int) []bdyvi {
 
 	var sigpts []bdyvi
 	if len(bdyvis) < numCPU {
@@ -319,7 +319,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int) []bdyvi {
 	for w, job := range jobs {
 		wg.Add(1)
 		results[w] = make([]bdyvi, len(job))
-		go worker(tadlists, job, &results[w])
+		go worker(tadlists, job, &results[w], threadCount)
 	}
 	wg.Wait()
 
@@ -355,12 +355,12 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int) []bdyvi {
 	return sigpts
 }*/
 
-func appendPval( tadlists [][][]int, querypt bdyvi) (bdyvi) {
+func appendPval( tadlists [][][]int, querypt bdyvi, threadCount int) (bdyvi) {
 
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, 2)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, threadCount)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)

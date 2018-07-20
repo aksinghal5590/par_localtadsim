@@ -10,11 +10,11 @@ import (
 //	"os"
 )
 
-func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, numCPU int) float64 {
+func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, threadCount int) float64 {
 
-	nshuffles := 10000/numCPU
-	shuffvi1 := make([][]float64, numCPU)
-	shuffvi2 := make([][]float64, numCPU)
+	nshuffles := 10000/threadCount
+	shuffvi1 := make([][]float64, threadCount)
+	shuffvi2 := make([][]float64, threadCount)
 
 	// more efficient to calculate VI as entropy(intvl1) + entropy(intvl2) - 2*mutinfo, because only need to recalculate mutual info on each iteration
 	h1 := CalcEntropy(intvl1, n)
@@ -30,14 +30,14 @@ func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, numCPU int) 
 	}
 
 	var wg sync.WaitGroup
-	for w := 0; w < numCPU; w++ {
+	for w := 0; w < threadCount; w++ {
 		wg.Add(1)
 		shuffvi1[w] = make([]float64, nshuffles)
 		shuffvi2[w] = make([]float64, nshuffles)
 		go func(shuff1 []float64, shuff2 []float64) {
 			for i := 0; i < nshuffles; i++ {
-				shuff1[i], shuff2[i] = worker(intvl1, intvl2, n, clus1sizes, clus2sizes, h1, h2)
 				runtime.Gosched()
+				shuff1[i], shuff2[i] = worker(intvl1, intvl2, n, clus1sizes, clus2sizes, h1, h2)
 			}
 			defer wg.Done()
 		}(shuffvi1[w], shuffvi2[w])
@@ -48,7 +48,7 @@ func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, numCPU int) 
 	count1 := 0
 	count2 := 0
 
-	for w := 0; w < numCPU; w++ {
+	for w := 0; w < threadCount; w++ {
 		for i := 0; i < nshuffles; i++ {
 			if shuffvi1[w][i] - vival < 1e-10 {
 				count1++
@@ -58,7 +58,7 @@ func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, numCPU int) 
 			}
 		}
 	}
-	pval := (float64(count1 + 1)/float64(nshuffles * numCPU + 1) + float64(count2 + 1)/float64(nshuffles * numCPU + 1))/2.0
+	pval := (float64(count1 + 1)/float64(nshuffles * threadCount + 1) + float64(count2 + 1)/float64(nshuffles * threadCount + 1))/2.0
 	return pval
 }
 
