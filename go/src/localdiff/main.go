@@ -83,7 +83,7 @@ func main() {
 	runtime.GOMAXPROCS(numCPU)
 	// calculate all p-values, select significant points
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, numCPU * 2)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
@@ -360,7 +360,7 @@ func appendPval( tadlists [][][]int, querypt bdyvi) (bdyvi) {
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, 2)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)
