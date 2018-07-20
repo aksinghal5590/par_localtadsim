@@ -43,7 +43,7 @@ func main() {
 	gammain := flag.String("gamma", "", "if optimizing gamma, use 'opt,n' where n is the median TAD size to optimize for")
 	res := flag.Int("res",1,"resolution of Hi-C data")
 	outfile := flag.String("o","","output filename")
-	pcount := flag.Int("p",4,"no of processes")
+	pcount := flag.Int("p", numCPU, "no of processes")
 
 	flag.Parse()
 
@@ -83,7 +83,7 @@ func main() {
 	runtime.GOMAXPROCS(numCPU)
 	// calculate all p-values, select significant points
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, numCPU)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU * 2)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
@@ -295,6 +295,7 @@ func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi) {
 	defer wg.Done()
 	for i, querypt := range job {
 		(*result)[i] = appendPval(tadlists, querypt)
+		runtime.Gosched()
 	}
 }
 
