@@ -37,11 +37,13 @@ func sortAndPrint(bdyvis []bdyvi, isPrint bool) {
 func main() {
 
 	runtime.GOMAXPROCS(1)
+	numCPU := runtime.NumCPU()
 	// inputs should be 2 TAD files, a resolution parameter, and the output file name
 	tadin := flag.String("tad", "", "comma-separated list of two TAD filenames or file patterns if optimizing gamma")
 	gammain := flag.String("gamma", "", "if optimizing gamma, use 'opt,n' where n is the median TAD size to optimize for")
 	res := flag.Int("res",1,"resolution of Hi-C data")
 	outfile := flag.String("o","","output filename")
+	pcount := flag.Int("p",4,"no of processes")
 
 	flag.Parse()
 
@@ -77,8 +79,7 @@ func main() {
 	duration = time.Since(then)
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
-	numCPU := runtime.NumCPU()
-	// numCPU = 1
+	numCPU = *pcount
 	runtime.GOMAXPROCS(numCPU)
 	// calculate all p-values, select significant points
 	then = time.Now()
