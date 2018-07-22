@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"sort"
 	"math"
+	"math/rand"
 	"runtime"
+	"runtime/pprof"
 	"sync"
 	"time"
 	)
@@ -44,8 +46,15 @@ func main() {
 	res := flag.Int("res",1,"resolution of Hi-C data")
 	outfile := flag.String("o","","output filename")
 	pcount := flag.Int("p", numCPU, "no of processes")
+	cpuprof := flag.String("cpu", "", "write cpu profile to file")
 
 	flag.Parse()
+
+	if *cpuprof != "" {
+		f,_ := os.Create(*cpuprof)
+			pprof.StartCPUProfile(f)
+			defer pprof.StopCPUProfile()
+	}
 
 	tadfilelist := strings.Split(*tadin, ",")
 
@@ -57,9 +66,9 @@ func main() {
 		gammadata := strings.Split(*gammain,",")
 		medtadlen,err = strconv.ParseFloat(gammadata[1],64)
 		if err != nil {
-                        fmt.Println("Error: couldn't convert median TAD length value to float, make sure to input i.e. '-gamma=opt,100' ")
-                        os.Exit(1)
-                }
+			fmt.Println("Error: couldn't convert median TAD length value to float, make sure to input i.e. '-gamma=opt,100' ")
+			os.Exit(1)
+		}
 	} else {
 		gammaopt = false
 	}
@@ -73,23 +82,24 @@ func main() {
 
 	// calculate VI values at boundaries (using DP)
 	then = time.Now()
-	// bdyvis := calcVIatBdys(tadlists)
-	bdyvis := calcVIatBdysNaive(tadlists)
+	bdyvis := calcVIatBdys(tadlists)
+	// bdyvis := calcVIatBdysNaive(tadlists)
 	sortAndPrint(bdyvis, false)
 	duration = time.Since(then)
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
-	numCPU = *pcount
-	runtime.GOMAXPROCS(numCPU * 2)
 	// calculate all p-values, select significant points
+	nshuffles := 10000
+	numCPU = *pcount
+	runtime.GOMAXPROCS(numCPU)
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, numCPU, 2)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU, nshuffles)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
 
-	runtime.GOMAXPROCS(1)
 	// identify dominating points from significant ones
+	runtime.GOMAXPROCS(1)
 	then = time.Now()
 	dompts := findDomPts(sigpts)
 	duration = time.Since(then)
@@ -291,15 +301,15 @@ func transpose(a [][]int) [][]int {
 }
 
 var wg sync.WaitGroup
-func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, threadCount int) {
+func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, nshuffles int) {
 	defer wg.Done()
+	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for i, querypt := range job {
-		runtime.Gosched()
-		(*result)[i] = appendPval(tadlists, querypt, threadCount)
+		(*result)[i] = appendPval(tadlists, querypt, nshuffles, r)
 	}
 }
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, threadCount int) []bdyvi {
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, nshuffles int) []bdyvi {
 
 	var sigpts []bdyvi
 	if len(bdyvis) < numCPU {
@@ -319,7 +329,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, threadCount in
 	for w, job := range jobs {
 		wg.Add(1)
 		results[w] = make([]bdyvi, len(job))
-		go worker(tadlists, job, &results[w], threadCount)
+		go worker(tadlists, job, &results[w], nshuffles)
 	}
 	wg.Wait()
 
@@ -355,12 +365,12 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, threadCount in
 	return sigpts
 }*/
 
-func appendPval( tadlists [][][]int, querypt bdyvi, threadCount int) (bdyvi) {
+func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int, r *rand.Rand) (bdyvi) {
 
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, threadCount)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, nshuffles, r)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)
