@@ -36,7 +36,6 @@ func CalcOverlapsPtr(cluslist1 [][]int, cluslist2 [][]int, overlaps *[][]int) {
 // output is matrix of (*overlaps), where [i][j] entry is the size of the intersection of cluster i from cluslist1 with cluster j from cluslist2
 
 	for i,clus1 := range cluslist1 {
-		(*overlaps)[i] = make([]int, len(cluslist2))
 		for j,clus2 := range(cluslist2) {
 			if clus2[0] > clus1[1] || clus1[0] > clus2[1] {
 				(*overlaps)[i][j] = 0 // no overlap

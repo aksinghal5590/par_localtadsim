@@ -303,9 +303,9 @@ func transpose(a [][]int) [][]int {
 var wg sync.WaitGroup
 func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, nshuffles int) {
 	defer wg.Done()
-	r := rand.New(rand.NewSource(time.Now().Unix()))
+	concurrentRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i, querypt := range job {
-		(*result)[i] = appendPval(tadlists, querypt, nshuffles, r)
+		(*result)[i] = appendPval(tadlists, querypt, nshuffles, concurrentRand)
 	}
 }
 

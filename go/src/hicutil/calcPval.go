@@ -22,11 +22,21 @@ func CalcPval(intvl1 [][]int, intvl2 [][]int, n int, vival float64, nshuffles in
 	}
 
 	overlaps1 := make([][]int, len(intvl1))
+	for i,_ := range intvl1 {
+		overlaps1[i] = make([]int, len(intvl2))
+	}
 	overlaps2 := make([][]int, len(intvl1))
+	for i,_ := range intvl1 {
+                overlaps2[i] = make([]int, len(intvl2))
+        }
 
 	count1 := 0
 	count2 := 0
 
+	shuffleCount := len(intvl1) * len(intvl2)
+	if nshuffles > shuffleCount {
+		nshuffles = shuffleCount
+	}
 	for i := 0; i < nshuffles; i++ {
 
 		// randomly shuffle domain lengths in each list
