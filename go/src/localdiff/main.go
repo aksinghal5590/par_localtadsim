@@ -89,11 +89,11 @@ func main() {
 	fmt.Printf("calcVIatBdys duration: %s\n", duration)
 
 	// calculate all p-values, select significant points
-	nshuffles := 10000
+	convergencecondition := 1e-5
 	numCPU = *pcount
 	runtime.GOMAXPROCS(numCPU)
 	then = time.Now()
-	sigpts := calcAllPvals(tadlists, bdyvis, numCPU, nshuffles)
+	sigpts := calcAllPvals(tadlists, bdyvis, numCPU, convergencecondition)
 	duration = time.Since(then)
 	fmt.Printf("calcAllPvals duration: %s\n", duration)
 	// fmt.Println("done calculating all p-values")
@@ -301,15 +301,15 @@ func transpose(a [][]int) [][]int {
 }
 
 var wg sync.WaitGroup
-func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, nshuffles int) {
+func worker(tadlists [][][]int, job []bdyvi, result *[]bdyvi, convcond float64) {
 	defer wg.Done()
 	concurrentRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i, querypt := range job {
-		(*result)[i] = appendPval(tadlists, querypt, nshuffles, concurrentRand)
+		(*result)[i] = appendPval(tadlists, querypt, convcond, concurrentRand)
 	}
 }
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, nshuffles int) []bdyvi {
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, convcond float64) []bdyvi {
 
 	var sigpts []bdyvi
 	if len(bdyvis) < numCPU {
@@ -329,7 +329,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, nshuffles int)
 	for w, job := range jobs {
 		wg.Add(1)
 		results[w] = make([]bdyvi, len(job))
-		go worker(tadlists, job, &results[w], nshuffles)
+		go worker(tadlists, job, &results[w], convcond)
 	}
 	wg.Wait()
 
@@ -350,13 +350,13 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, nshuffles int)
 	return sigpts
 }
 
-/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi) []bdyvi {
+/*func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 
 	var sigpts []bdyvi
 	bdyvis_pval := make([]bdyvi, len(bdyvis))
 	allpvals := make([]float64,len(bdyvis_pval))
 	for i,querypt := range bdyvis {
-		bdyvis_pval[i] = appendPval(tadlists, querypt)
+		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
 		allpvals[i] = bdyvis_pval[i].pval
 	}
 	bhidx := hicutil.MultHypTestBH(allpvals)
@@ -365,12 +365,12 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, numCPU int, nshuffles int)
 	return sigpts
 }*/
 
-func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int, r *rand.Rand) (bdyvi) {
+func appendPval( tadlists [][][]int, querypt bdyvi, convcond float64, r *rand.Rand) (bdyvi) {
 
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, nshuffles, r)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, convcond, r)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)
