@@ -18,6 +18,7 @@ func ChooseGamma(tadlen float64,fileseed string, res int) ([][]int, float64) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var gammalist []float64
 	tadsets := make(map[float64][][]int)
 	for _,file := range filelist {
 		fparts := strings.Split(file, ".")
@@ -35,10 +36,13 @@ func ChooseGamma(tadlen float64,fileseed string, res int) ([][]int, float64) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		gammalist = append(gammalist, gamma)
 		tadsets[gamma] = ReadTADFile(file, res)
 	}
+	sort.Float64s(gammalist)
 	var disttotadlen,optgamma float64
-	for g,tadlist := range tadsets {
+	for _,g := range gammalist {
+		tadlist := tadsets[g]
 //		var sumtadsize int
 		var tadsizes []int
 		for _,tad := range tadlist {
