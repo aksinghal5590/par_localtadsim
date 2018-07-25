@@ -1,250 +1,243 @@
 chr1_T47D_HMEC
-processTADLists duration: 31.490002ms
-calcVIatBdys duration: 6.356894ms
-calcAllPvals duration: 6.99495631s
-findDomPts duration: 48.899µs
+processTADLists duration: 9.979756ms
+calcVIatBdys duration: 5.39499ms
+calcAllPvals duration: 7.313642879s
+findDomPts duration: 45.822µs
 start	end	VI	p-value
-395	1463	0.0935034	0.00628443
+395	1463	0.0935034	0.00541359
 470	1558	0.0688743	0.003125
-1216	1561	0.102924	0.003125
+1216	1561	0.102924	0.00427989
 
 chr2_G401_HUVEC
-processTADLists duration: 10.657037ms
-calcVIatBdys duration: 32.773406ms
-calcAllPvals duration: 35.408212952s
-findDomPts duration: 786.093µs
+processTADLists duration: 10.09056ms
+calcVIatBdys duration: 30.5561ms
+calcAllPvals duration: 36.17558022s
+findDomPts duration: 1.361809ms
 start	end	VI	p-value
 1	476	0.0626216	0.003125
-759	890	0.0372164	0.00427989
-883	953	0.0461664	0.00377979
+759	890	0.0372164	0.003125
+883	953	0.0461664	0.003125
 900	980	0.033608	0.003125
-1096	1125	0	0.00377979
+1096	1125	0	0.00427989
 1102	1133	0	0.00377979
 
 chr3_Caki2_KBM7
-processTADLists duration: 10.37606ms
-calcVIatBdys duration: 24.367134ms
-calcAllPvals duration: 17.223404525s
-findDomPts duration: 1.624598ms
+processTADLists duration: 16.312886ms
+calcVIatBdys duration: 32.678137ms
+calcAllPvals duration: 16.991066728s
+findDomPts duration: 1.565859ms
 start	end	VI	p-value
-329	426	0.0604581	0.00573347
-996	1118	0.060591	0.00914179
-1015	1211	0.0764602	0.0308017
+329	426	0.0604581	0.00377979
+996	1118	0.060591	0.00984353
+1015	1211	0.0764602	0.0260349
 1222	1379	0.0292105	0.003125
 1246	1323	0.038121	0.003125
-1689	1826	0.0117756	0.00536195
-1695	1834	0.0285049	0.00427989
-1706	1839	0.031045	0.0254501
+1689	1826	0.0117756	0.00667164
+1695	1834	0.0285049	0.003125
+1706	1839	0.031045	0.0242781
 
 chr4_LNCaP-FGC_KBM7
-processTADLists duration: 9.770219ms
-calcVIatBdys duration: 26.359869ms
-calcAllPvals duration: 13.306115033s
-findDomPts duration: 1.737798ms
+processTADLists duration: 10.336113ms
+calcVIatBdys duration: 24.733432ms
+calcAllPvals duration: 13.352571365s
+findDomPts duration: 4.140682ms
 start	end	VI	p-value
 492	636	0.0310477	0.003125
-714	767	0.0908197	0.0152233
+714	767	0.0908197	0.0179117
 834	952	0.0517231	0.003125
-881	990	0.0585978	0.0219588
+881	990	0.0585978	0.02495
 1335	1519	0.0417051	0.003125
-1450	1533	0.0386773	0.00812473
+1450	1533	0.0386773	0.00543478
 1461	1595	0.0461006	0.003125
 
 chr5_SJCRH30_HUVEC
-processTADLists duration: 11.286245ms
-calcVIatBdys duration: 49.096841ms
-calcAllPvals duration: 16.810694395s
-findDomPts duration: 2.362µs
+processTADLists duration: 20.29862ms
+calcVIatBdys duration: 48.471905ms
+calcAllPvals duration: 16.262418356s
+findDomPts duration: 4.336µs
 start	end	VI	p-value
 
 chr6_LNCaP-FGC_KBM7
-processTADLists duration: 29.843269ms
-calcVIatBdys duration: 53.300448ms
-calcAllPvals duration: 5.005333812s
-findDomPts duration: 172.739µs
+processTADLists duration: 12.23439ms
+calcVIatBdys duration: 40.571872ms
+calcAllPvals duration: 5.004449989s
+findDomPts duration: 94.452µs
 start	end	VI	p-value
-354	443	0.153198	0.003125
-500	694	0.201345	0.00493469
-576	709	0.172607	0.0147406
+54	694	0.242195	0.003125
 
 chr7_LNCaP-FGC_HMEC
-processTADLists duration: 22.387001ms
-calcVIatBdys duration: 31.66192ms
-calcAllPvals duration: 2.017402663s
-findDomPts duration: 76.027µs
+processTADLists duration: 15.744266ms
+calcVIatBdys duration: 63.723473ms
+calcAllPvals duration: 2.037980242s
+findDomPts duration: 59.544µs
 start	end	VI	p-value
-284	1134	0.364413	0.00377979
-298	1546	0.424366	0.00377979
+284	1134	0.364413	0.003125
+298	1546	0.424366	0.003125
 
 chr8_Caki2_HMEC
-processTADLists duration: 15.751649ms
-calcVIatBdys duration: 13.847061ms
-calcAllPvals duration: 5.401091308s
-findDomPts duration: 114.087µs
+processTADLists duration: 11.048861ms
+calcVIatBdys duration: 13.953128ms
+calcAllPvals duration: 5.396066531s
+findDomPts duration: 131.05µs
 start	end	VI	p-value
-991	1207	0.0589567	0.00427989
+991	1207	0.0589567	0.00493469
 1018	1317	0.0642044	0.003125
-1330	1463	0.043695	0.00377979
+1330	1463	0.043695	0.003125
 
 chr9_LNCaP-FGC_HMEC
-processTADLists duration: 37.343452ms
-calcVIatBdys duration: 17.149334ms
-calcAllPvals duration: 7.474757477s
-findDomPts duration: 947.94µs
+processTADLists duration: 12.08372ms
+calcVIatBdys duration: 16.406177ms
+calcAllPvals duration: 7.360077285s
+findDomPts duration: 1.102839ms
 start	end	VI	p-value
 339	655	0.0631614	0.003125
-444	657	0.0239288	0.0124916
+444	657	0.0239288	0.0117944
 459	680	0.0412568	0.00377979
-809	956	0.0670819	0.003125
-1084	1170	0.0369052	0.00507867
+809	956	0.0670819	0.00377979
+1084	1170	0.0369052	0.00377979
 1101	1252	0.0695492	0.003125
-1281	1359	0.0724287	0.00377979
+1281	1359	0.0724287	0.003125
 
 chr10_T47D_HMEC
-processTADLists duration: 158.239544ms
-calcVIatBdys duration: 10.90822ms
-calcAllPvals duration: 4.659796245s
-findDomPts duration: 542.532µs
+processTADLists duration: 12.208992ms
+calcVIatBdys duration: 11.479392ms
+calcAllPvals duration: 1.358760885s
+findDomPts duration: 73.193µs
 start	end	VI	p-value
-275	353	0.0796061	0.00628443
-437	508	0.0668357	0.003125
-456	482	0.0694777	0.0195803
-760	810	0.0634901	0.0284697
-822	943	0.0440656	0.00427989
-892	953	0.0351621	0.029491
+393	482	0.148671	0.00656848
+437	508	0.120121	0.003125
+709	788	0.114857	0.00377979
 
 chr11_Caki2_HUVEC
-processTADLists duration: 9.387151ms
-calcVIatBdys duration: 964.533µs
-calcAllPvals duration: 405.59803ms
-findDomPts duration: 25.448µs
+processTADLists duration: 28.504968ms
+calcVIatBdys duration: 1.416383ms
+calcAllPvals duration: 468.499248ms
+findDomPts duration: 31.749µs
 start	end	VI	p-value
-25	606	0.0182952	0.0118644
-34	1350	0.018295	0.003125
+25	606	0.0182952	0.0117216
+34	1350	0.0174739	0.003125
 
 chr12_LNCaP-FGC_HUVEC
-processTADLists duration: 143.215889ms
-calcVIatBdys duration: 19.974836ms
-calcAllPvals duration: 8.324942975s
-findDomPts duration: 188.613µs
+processTADLists duration: 9.485025ms
+calcVIatBdys duration: 17.988347ms
+calcAllPvals duration: 8.501691908s
+findDomPts duration: 347.49µs
 start	end	VI	p-value
 503	580	0.0551957	0.003125
 1100	1312	0.189114	0.00377979
-1222	1333	0.0764787	0.003125
+1222	1333	0.0764787	0.00377979
 1230	1338	0.0808695	0.003125
 
 chr13_LNCaP-FGC_KBM7
-processTADLists duration: 10.138761ms
-calcVIatBdys duration: 13.086747ms
-calcAllPvals duration: 6.637390678s
-findDomPts duration: 949.764µs
+processTADLists duration: 15.583889ms
+calcVIatBdys duration: 17.325743ms
+calcAllPvals duration: 6.646521638s
+findDomPts duration: 1.021573ms
 start	end	VI	p-value
 0	358	0.0497385	0.003125
+366	414	0.0381289	0.0360145
 376	455	0.0367024	0.003125
-396	428	0.0500482	0.0427342
-461	492	0.0495942	0.0412462
-504	581	0.0464852	0.0222514
-611	742	0.0480845	0.00507867
+396	428	0.0500482	0.0420257
+461	492	0.0495942	0.039513
+504	581	0.0464852	0.0178202
+611	742	0.0480845	0.00606839
 626	782	0.0365361	0.003125
-817	868	0.0356303	0.0387787
-824	880	0.036093	0.0273469
-966	1012	0.0333089	0.0170799
+817	868	0.0356303	0.0427527
+824	880	0.036093	0.0333661
+966	1012	0.0333089	0.017707
+1018	1119	0.034943	0.003125
 1035	1151	0.0434654	0.003125
 
 chr14_T47D_HMEC
-processTADLists duration: 94.483458ms
-calcVIatBdys duration: 6.214993ms
-calcAllPvals duration: 2.827495407s
-findDomPts duration: 517.689µs
+processTADLists duration: 10.085209ms
+calcVIatBdys duration: 6.115501ms
+calcAllPvals duration: 2.720951169s
+findDomPts duration: 535.827µs
 start	end	VI	p-value
-0	233	0.026584	0.0068791
-251	382	0.0116292	0.003125
+0	233	0.026584	0.00470715
+251	382	0.0116292	0.00377979
 608	694	0.0180878	0.003125
-793	918	0.0148889	0.0409657
-819	944	0.0245464	0.00427989
-970	1051	0.0408517	0.00377979
+783	924	0.0431179	0.00623357
+819	944	0.0245464	0.00572421
+970	1069	0.0462555	0.003125
 
 chr15_T47D_KBM7
-processTADLists duration: 30.168336ms
-calcVIatBdys duration: 9.939422ms
-calcAllPvals duration: 5.055163007s
-findDomPts duration: 666.337µs
+processTADLists duration: 9.687857ms
+calcVIatBdys duration: 10.017729ms
+calcAllPvals duration: 4.948354655s
+findDomPts duration: 688.354µs
 start	end	VI	p-value
 0	272	0.00814729	0.003125
-388	436	0.0436172	0.0147872
+388	436	0.0436172	0.0166507
 608	696	0.0408297	0.003125
-636	709	0.0299362	0.00377979
-814	849	0.0489343	0.0404783
-827	857	0.0593014	0.0389233
-948	1025	0.0594232	0.00628931
+636	709	0.0299362	0.003125
+827	857	0.0593014	0.0399752
+948	1025	0.0594232	0.0109136
 
 chr16_T47D_HMEC
-processTADLists duration: 9.77207ms
-calcVIatBdys duration: 3.28181ms
-calcAllPvals duration: 1.057479212s
-findDomPts duration: 85.786µs
+processTADLists duration: 18.513827ms
+calcVIatBdys duration: 3.269847ms
+calcAllPvals duration: 1.083402635s
+findDomPts duration: 93.128µs
 start	end	VI	p-value
 1	184	0.126675	0.003125
 303	534	0.0320793	0.003125
 334	664	0.0667544	0.003125
-587	707	0.0485341	0.00637901
-842	903	0.10283	0.0101553
+587	707	0.0485341	0.0115065
+842	903	0.10283	0.00806097
 
 chr17_LNCaP-FGC_KBM7
-processTADLists duration: 16.481018ms
-calcVIatBdys duration: 4.880074ms
-calcAllPvals duration: 1.669496729s
-findDomPts duration: 114.948µs
+processTADLists duration: 28.394162ms
+calcVIatBdys duration: 3.620965ms
+calcAllPvals duration: 1.630662571s
+findDomPts duration: 88.103µs
 start	end	VI	p-value
-0	159	0.114758	0.003125
-217	342	0.0861222	0.0112204
-224	364	0.073667	0.00493469
-387	549	0.0901246	0.003125
-401	563	0.0816402	0.003125
-449	621	0.0853068	0.003125
-484	722	0.0929777	0.003125
-659	811	0.089751	0.0154231
+217	364	0.0901878	0.003125
+387	549	0.106459	0.003125
+420	563	0.0748791	0.003125
+449	621	0.0839946	0.003125
+484	724	0.0926561	0.003125
 
 chr18_T47D_HMEC
-processTADLists duration: 18.627127ms
-calcVIatBdys duration: 2.188155ms
-calcAllPvals duration: 643.669823ms
-findDomPts duration: 13.834µs
+processTADLists duration: 9.770327ms
+calcVIatBdys duration: 2.289861ms
+calcAllPvals duration: 641.979729ms
+findDomPts duration: 14.731µs
 start	end	VI	p-value
-0	518	0.259193	0.00377979
-32	780	0.275422	0.00377979
+0	518	0.259193	0.003125
+32	780	0.275422	0.003125
 
 chr19_SJCRH30_HMEC
-processTADLists duration: 19.781856ms
-calcVIatBdys duration: 1.095797ms
-calcAllPvals duration: 2.012272495s
-findDomPts duration: 3.279µs
+processTADLists duration: 9.842647ms
+calcVIatBdys duration: 978.471µs
+calcAllPvals duration: 1.919375845s
+findDomPts duration: 3.203µs
 start	end	VI	p-value
 
 chr20_G401_HMEC
-processTADLists duration: 30.781943ms
-calcVIatBdys duration: 3.537058ms
-calcAllPvals duration: 1.155821845s
-findDomPts duration: 37.527µs
+processTADLists duration: 16.59218ms
+calcVIatBdys duration: 8.878408ms
+calcAllPvals duration: 1.121057439s
+findDomPts duration: 33.768µs
 start	end	VI	p-value
-140	313	0.0770203	0.00377979
-264	317	0.0581911	0.00984353
+140	313	0.0770203	0.003125
+264	317	0.0581911	0.010905
 
 chr21_Caki2_KBM7
-processTADLists duration: 69.933256ms
-calcVIatBdys duration: 1.58209ms
-calcAllPvals duration: 627.27975ms
-findDomPts duration: 42.403µs
+processTADLists duration: 9.28171ms
+calcVIatBdys duration: 1.503917ms
+calcAllPvals duration: 633.204992ms
+findDomPts duration: 42.797µs
 start	end	VI	p-value
-0	149	0.015544	0.003125
-408	481	0.0328629	0.00699575
+0	149	0.015544	0.00427989
+408	481	0.0328629	0.003125
 
 chr22_LNCaP-FGC_HUVEC
-processTADLists duration: 63.507077ms
-calcVIatBdys duration: 1.622714ms
-calcAllPvals duration: 716.66863ms
-findDomPts duration: 67.289µs
+processTADLists duration: 19.358487ms
+calcVIatBdys duration: 1.611628ms
+calcAllPvals duration: 713.384946ms
+findDomPts duration: 68.352µs
 start	end	VI	p-value
 0	468	0.0500814	0.003125
-412	513	0.0378763	0.003125
+412	513	0.0378763	0.00377979
 
