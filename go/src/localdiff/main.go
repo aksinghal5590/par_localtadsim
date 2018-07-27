@@ -31,7 +31,7 @@ func main() {
 	outfile := flag.String("o","","output filename")
 
 	flag.Parse()
-	
+
 	tadfilelist := strings.Split(*tadin, ",")
 
 	var gammaopt bool
@@ -56,10 +56,10 @@ func main() {
 	// calculate VI values at boundaries (using DP)
 	bdyvis := calcVIatBdys(tadlists)
 //	bdyvisnaive := calcVIatBdysNaive(tadlists)
-	
+
 	// calculate all p-values, select significant points
-	nshuffles := 1000
-	sigpts := calcAllPvals(tadlists, bdyvis, nshuffles)
+	convcond := 1e-5
+	sigpts := calcAllPvals(tadlists, bdyvis, convcond)
 	fmt.Println("done calculating all p-values")
 
 	// identify dominating points from significant ones
@@ -68,7 +68,7 @@ func main() {
 
 	// save results to a file
 	writeOutputToFile(dompts,outfile)
-	
+
 }
 
 
@@ -92,7 +92,7 @@ func processTADLists(tadfilelist []string, res *int, gammaopt bool, medtadlen fl
 	for i:=0; i < 2; i++ {
 		tadlists[i] = hicutil.FillinTADList(tadlists[i], chrlength)
 	}
-	
+
 	return tadlists
 
 }
@@ -188,7 +188,7 @@ func calcVIatBdys(tadlists [][][]int) ([]bdyvi) {
 			newbdyvi.vi = currhvals.vi/math.Log(float64(tads[1]-tads[0]+1)) // divide by log(n) to normalize
 			if tads[0] == tads[1] { continue }
 			bdyvilist = append(bdyvilist, newbdyvi)
-		}		
+		}
 	}
 	for i,tadlist := range tadlists {
 		var noti int
@@ -228,6 +228,9 @@ func calcVIatBdys(tadlists [][][]int) ([]bdyvi) {
 				}
 				dpmap[starttad[0]][endtad[1]] = newhvals
 				newbdyvis.vi = newhvals.vi/math.Log(float64(endtad[1]-starttad[0]+1))
+				if hicutil.ContainsHangingTAD(tadlists[0], starttad[0], endtad[1]) || hicutil.ContainsHangingTAD(tadlists[1], starttad[0], endtad[1]) {
+					continue
+				}
 				bdyvilist = append(bdyvilist, newbdyvis)
 			}
 		}
@@ -259,7 +262,7 @@ func transpose(a [][]int) [][]int {
 	return b
 }
 
-func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
+func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, convcond float64) []bdyvi {
 
 	//var wg sync.WaitGroup
 	//wg.Add(len(bdyvis))
@@ -277,7 +280,7 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	//		defer wg.Done()
 
 	//	fmt.Println(i)
-		bdyvis_pval[i] = appendPval(tadlists, querypt, nshuffles)
+		bdyvis_pval[i] = appendPval(tadlists, querypt, convcond)
 		allpvals[i] = bdyvis_pval[i].pval
 			/*if p < 0.05 {
 				querypt.pval = p
@@ -297,12 +300,12 @@ func calcAllPvals(tadlists [][][]int, bdyvis []bdyvi, nshuffles int) []bdyvi {
 	return sigpts
 }
 
-func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
-	
+func appendPval( tadlists [][][]int, querypt bdyvi, convcond float64) (bdyvi) {
+
 	intvl1 := hicutil.ProcessIntervals(tadlists[0], querypt.start, querypt.end)
 	intvl2 := hicutil.ProcessIntervals(tadlists[1], querypt.start, querypt.end)
 	n := querypt.end - querypt.start + 1
-	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, nshuffles)
+	p := hicutil.CalcPval(intvl1, intvl2, n, querypt.vi, convcond)
 	if p < 0.05 && (len(intvl1) == 1 || len(intvl2) == 1) {
 		fmt.Println(intvl1)
 		fmt.Println(intvl2)
@@ -316,7 +319,7 @@ func appendPval( tadlists [][][]int, querypt bdyvi, nshuffles int) (bdyvi) {
 }
 
 func findDomPts(sigpts []bdyvi) []bdyvi {
-	
+
 	var dompts []bdyvi
 	for i,querypt := range sigpts {
 		isdom := true
@@ -332,7 +335,7 @@ func findDomPts(sigpts []bdyvi) []bdyvi {
 			}
 			if comppt.start <= querypt.start { continue }
 			if comppt.end >= querypt.end { continue }
-			if comppt.vi < querypt.vi { 
+			if comppt.vi < querypt.vi {
 				isdom = false
 				break
 			}
